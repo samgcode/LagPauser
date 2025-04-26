@@ -1,0 +1,8 @@
+LAGPAUSER_PAUSED= Lag Paused
+
+LAGPAUSER_THRESHOLD= Threshold ms
+LAGPAUSER_THRESHOLD_DESC= Amount of milliseconds of lag required to trigger a pause
+LAGPAUSER_COOLDOWN= Cooldown ms
+LAGPAUSER_COOLDOWN_DESC= Amount of milliseconds to wait before allowing another pause
+LAGPAUSER_RESPAWN_COOLDOWN= Respawn Cooldown ms
+LAGPAUSER_RESPAWN_COOLDOWN_DESC= Amount of milliseconds to wait after respawning before allowing a pause
