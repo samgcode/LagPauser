@@ -7,13 +7,35 @@ public class LagPauserModuleSettings : EverestModuleSettings
   [SettingRange(0, 3000, true)]
   public int ThresholdMs { get; set; } = 100;
 
-  [SettingName("LAGPAUSER_COOLDOWN")]
-  [SettingSubText("LAGPAUSER_COOLDOWN_DESC")]
-  [SettingRange(0, 10000, true)]
-  public int CooldownMs { get; set; } = 100;
+  public int CooldownMs { get; set; } = 0;
+  public int RespawnCooldownMs { get; set; } = 0;
 
-  [SettingName("LAGPAUSER_RESPAWN_COOLDOWN")]
-  [SettingSubText("LAGPAUSER_RESPAWN_COOLDOWN_DESC")]
-  [SettingRange(0, 10000, true)]
-  public int RespawnCooldownMs { get; set; } = 100;
+
+  public void CreateCooldownMsEntry(TextMenu menu, bool inGame)
+  {
+    TextMenu.Item menuItem;
+
+    menu.Add(menuItem = new TextMenu.Slider(
+      Dialog.Clean("LAGPAUSER_COOLDOWN"),
+      i => $"{i * 100}",
+      0, 100,
+      CooldownMs / 100
+    ).Change(i => CooldownMs = i * 100));
+
+    menuItem.AddDescription(menu, Dialog.Clean("LAGPAUSER_COOLDOWN_DESC"));
+  }
+
+  public void CreateRespawnCooldownMsEntry(TextMenu menu, bool inGame)
+  {
+    TextMenu.Item menuItem;
+
+    menu.Add(menuItem = new TextMenu.Slider(
+      Dialog.Clean("LAGPAUSER_RESPAWN_COOLDOWN"),
+      i => $"{i * 100}",
+      0, 100,
+      RespawnCooldownMs / 100
+    ).Change(i => RespawnCooldownMs = i * 100));
+
+    menuItem.AddDescription(menu, Dialog.Clean("LAGPAUSER_RESPAWN_COOLDOWN_DESC"));
+  }
 }
