@@ -27,6 +27,7 @@ public class LagPauserModule : EverestModule
     private const double frameTime = 50.0 / 3.0; // 16.6666666666667ms
     public static double timeSincePause = 0;
     public static double timeSinceDeath = 0;
+    public static double timeSinceTransition = 0;
 
     public LagPauserModule()
     {
@@ -44,6 +45,7 @@ public class LagPauserModule : EverestModule
     {
         On.Monocle.Engine.Update += EngineUpdateHook;
         Everest.Events.Level.OnUnpause += Level_Unpause;
+        Everest.Events.Level.OnLoadLevel += OnLoadLevel;
         On.Celeste.Dialog.Clean += Dialog_Clean;
 
         hook_Player_orig_Die = new Hook(
@@ -51,11 +53,11 @@ public class LagPauserModule : EverestModule
                 typeof(LagPauserModule).GetMethod("OnPlayerDie"));
     }
 
-
     public override void Unload()
     {
         On.Monocle.Engine.Update -= EngineUpdateHook;
         Everest.Events.Level.OnUnpause -= Level_Unpause;
+        Everest.Events.Level.OnLoadLevel -= OnLoadLevel;
         On.Celeste.Dialog.Clean -= Dialog_Clean;
 
         hook_Player_orig_Die?.Dispose();
@@ -72,8 +74,13 @@ public class LagPauserModule : EverestModule
 
             timeSincePause += deltaTime.TotalMilliseconds + frameTime;
             timeSinceDeath += deltaTime.TotalMilliseconds + frameTime;
+            timeSinceTransition += deltaTime.TotalMilliseconds + frameTime;
 
-            if (timeSincePause >= Settings.CooldownMs && timeSinceDeath >= Settings.RespawnCooldownMs)
+            if (
+                timeSincePause >= Settings.CooldownMs &&
+                timeSinceDeath >= Settings.RespawnCooldownMs &&
+                timeSinceTransition >= Settings.TransitionCooldownMs
+                )
             {
                 if (deltaTime.TotalMilliseconds >= Settings.ThresholdMs)
                 {
@@ -115,5 +122,11 @@ public class LagPauserModule : EverestModule
         timeSinceDeath = 0;
 
         return orig(self, direction, ifInvincible, registerStats);
+    }
+
+    private void OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
+    {
+        Logger.Log(LogLevel.Verbose, "LagPauserModule", $"OnLoadLevel: {Settings.TransitionCooldownMs}ms {timeSinceTransition}ms");
+        timeSinceTransition = 0;
     }
 }

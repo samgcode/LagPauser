@@ -6,3 +6,6 @@ LAGPAUSER_COOLDOWN= Cooldown ms
 LAGPAUSER_COOLDOWN_DESC= Amount of milliseconds to wait before allowing another pause
 LAGPAUSER_RESPAWN_COOLDOWN= Respawn Cooldown ms
 LAGPAUSER_RESPAWN_COOLDOWN_DESC= Amount of milliseconds to wait after respawning before allowing a pause
+LAGPAUSER_TRANSITION_COOLDOWN= Screen Transition Cooldown ms
+LAGPAUSER_TRANSITION_COOLDOWN_DESC= Amount of milliseconds to wait after loading a new screen 
+before allowing a pause
