@@ -1,5 +1,8 @@
 LAGPAUSER_PAUSED= Lag Paused
 
+LAGPAUSER_ENABLE= Enable Lag Pauser
+LAGPAUSER_ENABLE_DESC= Enable lag pauser
+
 LAGPAUSER_THRESHOLD= Threshold ms
 LAGPAUSER_THRESHOLD_DESC= Amount of milliseconds of lag required to trigger a pause
 LAGPAUSER_COOLDOWN= Cooldown ms
@@ -9,3 +12,5 @@ LAGPAUSER_RESPAWN_COOLDOWN_DESC= Amount of milliseconds to wait after respawning
 LAGPAUSER_TRANSITION_COOLDOWN= Screen Transition Cooldown ms
 LAGPAUSER_TRANSITION_COOLDOWN_DESC= Amount of milliseconds to wait after loading a new screen 
 before allowing a pause
+
+LAGPAUSER_TOGGLE= Toggle Lagpauser

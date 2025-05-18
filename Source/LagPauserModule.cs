@@ -68,6 +68,18 @@ public class LagPauserModule : EverestModule
 
     public static void EngineUpdateHook(On.Monocle.Engine.orig_Update orig, Engine engine, GameTime gameTime)
     {
+        if (Settings.ToggleEnabled.Pressed)
+        {
+            Settings.Enable = !Settings.Enable;
+        }
+
+        if (!Settings.Enable)
+        {
+            orig(engine, gameTime);
+            return;
+        }
+
+
         if (Engine.Scene is Level level && level.CanPause)
         {
             TimeSpan deltaTime = (TimeSpan)f_Game_accumulatedElapsedTime.GetValue(engine);
@@ -126,7 +138,6 @@ public class LagPauserModule : EverestModule
 
     private void OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader)
     {
-        Logger.Log(LogLevel.Verbose, "LagPauserModule", $"OnLoadLevel: {Settings.TransitionCooldownMs}ms {timeSinceTransition}ms");
         timeSinceTransition = 0;
     }
 }

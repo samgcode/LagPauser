@@ -1,5 +1,5 @@
 - Name: LagPauser
-  Version: 1.1.0
+  Version: 1.2.0
   DLL: bin/LagPauser.dll
   Dependencies:
     - Name: EverestCore

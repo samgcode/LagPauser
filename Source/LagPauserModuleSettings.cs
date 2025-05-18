@@ -2,6 +2,10 @@ namespace Celeste.Mod.LagPauser;
 
 public class LagPauserModuleSettings : EverestModuleSettings
 {
+  [SettingName("LAGPAUSER_ENABLE")]
+  [SettingSubText("LAGPAUSER_ENABLE_DESC")]
+  public bool Enable { get; set; } = true;
+
   [SettingName("LAGPAUSER_THRESHOLD")]
   [SettingSubText("LAGPAUSER_THRESHOLD_DESC")]
   [SettingRange(0, 3000, true)]
@@ -11,6 +15,9 @@ public class LagPauserModuleSettings : EverestModuleSettings
   public int RespawnCooldownMs { get; set; } = 0;
   public int TransitionCooldownMs { get; set; } = 0;
 
+  [SettingName("LAGPAUSER_TOGGLE")]
+  [DefaultButtonBinding(0, 0)]
+  public ButtonBinding ToggleEnabled { get; set; }
 
   public void CreateCooldownMsEntry(TextMenu menu, bool inGame)
   {
