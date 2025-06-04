@@ -11,6 +11,7 @@ public class LagPauserModuleSettings : EverestModuleSettings
   [SettingRange(0, 3000, true)]
   public int ThresholdMs { get; set; } = 100;
 
+  public int InputCooldownMs { get; set; } = 0;
   public int CooldownMs { get; set; } = 0;
   public int RespawnCooldownMs { get; set; } = 0;
   public int TransitionCooldownMs { get; set; } = 0;
@@ -18,6 +19,21 @@ public class LagPauserModuleSettings : EverestModuleSettings
   [SettingName("LAGPAUSER_TOGGLE")]
   [DefaultButtonBinding(0, 0)]
   public ButtonBinding ToggleEnabled { get; set; }
+
+
+  public void CreateInputCooldownMsEntry(TextMenu menu, bool inGame)
+  {
+    TextMenu.Item menuItem;
+
+    menu.Add(menuItem = new TextMenu.Slider(
+      Dialog.Clean("LAGPAUSER_INPUT_COOLDOWN"),
+      i => $"{i * 100}",
+      0, 100,
+      InputCooldownMs / 100
+    ).Change(i => InputCooldownMs = i * 100));
+
+    menuItem.AddDescription(menu, Dialog.Clean("LAGPAUSER_INPUT_COOLDOWN_DESC"));
+  }
 
   public void CreateCooldownMsEntry(TextMenu menu, bool inGame)
   {

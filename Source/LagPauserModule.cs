@@ -22,12 +22,14 @@ public class LagPauserModule : EverestModule
     private static Hook hook_Player_orig_Die;
 
     private static FieldInfo f_Game_accumulatedElapsedTime = typeof(Game).GetField("accumulatedElapsedTime", BindingFlags.NonPublic | BindingFlags.Instance);
-    public static bool lagPaused = false;
 
     private const double frameTime = 50.0 / 3.0; // 16.6666666666667ms
     public static double timeSincePause = 0;
     public static double timeSinceDeath = 0;
     public static double timeSinceTransition = 0;
+    public static double timeSincePauseStart = 0;
+
+    private static TextMenu.Item resume;
 
     public LagPauserModule()
     {
@@ -44,9 +46,7 @@ public class LagPauserModule : EverestModule
     public override void Load()
     {
         On.Monocle.Engine.Update += EngineUpdateHook;
-        Everest.Events.Level.OnUnpause += Level_Unpause;
         Everest.Events.Level.OnLoadLevel += OnLoadLevel;
-        On.Celeste.Dialog.Clean += Dialog_Clean;
 
         hook_Player_orig_Die = new Hook(
                 typeof(Player).GetMethod("orig_Die", BindingFlags.Public | BindingFlags.Instance),
@@ -56,9 +56,7 @@ public class LagPauserModule : EverestModule
     public override void Unload()
     {
         On.Monocle.Engine.Update -= EngineUpdateHook;
-        Everest.Events.Level.OnUnpause -= Level_Unpause;
         Everest.Events.Level.OnLoadLevel -= OnLoadLevel;
-        On.Celeste.Dialog.Clean -= Dialog_Clean;
 
         hook_Player_orig_Die?.Dispose();
         hook_Player_orig_Die = null;
@@ -79,26 +77,33 @@ public class LagPauserModule : EverestModule
             return;
         }
 
-
-        if (Engine.Scene is Level level && level.CanPause)
+        if (Engine.Scene is Level level)
         {
             TimeSpan deltaTime = (TimeSpan)f_Game_accumulatedElapsedTime.GetValue(engine);
 
-            timeSincePause += deltaTime.TotalMilliseconds + frameTime;
-            timeSinceDeath += deltaTime.TotalMilliseconds + frameTime;
-            timeSinceTransition += deltaTime.TotalMilliseconds + frameTime;
-
-            if (
-                timeSincePause >= Settings.CooldownMs &&
-                timeSinceDeath >= Settings.RespawnCooldownMs &&
-                timeSinceTransition >= Settings.TransitionCooldownMs
-                )
+            timeSincePauseStart += deltaTime.TotalMilliseconds + frameTime;
+            if (resume != null)
             {
-                if (deltaTime.TotalMilliseconds >= Settings.ThresholdMs)
+                resume.Disabled = timeSincePauseStart <= Settings.InputCooldownMs;
+            }
+
+            if (level.CanPause)
+            {
+                timeSincePause += deltaTime.TotalMilliseconds + frameTime;
+                timeSinceDeath += deltaTime.TotalMilliseconds + frameTime;
+                timeSinceTransition += deltaTime.TotalMilliseconds + frameTime;
+
+                if (
+                    timeSincePause >= Settings.CooldownMs &&
+                    timeSinceDeath >= Settings.RespawnCooldownMs &&
+                    timeSinceTransition >= Settings.TransitionCooldownMs
+                    )
                 {
-                    lagPaused = true;
-                    level.CanRetry = false;
-                    level.Pause();
+                    if (deltaTime.TotalMilliseconds >= Settings.ThresholdMs)
+                    {
+                        timeSincePauseStart = 0;
+                        Pause();
+                    }
                 }
             }
         }
@@ -106,27 +111,44 @@ public class LagPauserModule : EverestModule
         orig(engine, gameTime);
     }
 
-    public static void Level_Unpause(Level level)
+    public static void Pause()
     {
-        if (lagPaused)
+        Level level = Engine.Scene as Level;
+        level.StartPauseEffects();
+        level.Paused = true;
+
+        level.PauseMainMenuOpen = true;
+        TextMenu menu = new TextMenu();
+
+        menu.Add(new TextMenu.Header(Dialog.Clean("LAGPAUSER_PAUSED")));
+
+        menu.Add(resume = new TextMenu.Button(Dialog.Clean("menu_pause_resume")).Pressed(() =>
         {
-            timeSincePause = 0;
-            lagPaused = false;
-            level.CanRetry = true;
-        }
+            menu.OnCancel();
+        }));
+
+        menu.OnESC = menu.OnCancel = menu.OnPause = () =>
+        {
+            if (timeSincePauseStart > Settings.InputCooldownMs)
+            {
+                level.PauseMainMenuOpen = false;
+                menu.RemoveSelf();
+                level.Paused = false;
+                Audio.Play("event:/ui/game/unpause");
+                level.unpauseTimer = 0.15f;
+                level.EndPauseEffects();
+
+                OnUnpause(level);
+            }
+        };
+
+        level.Add(menu);
     }
 
-    public static string Dialog_Clean(On.Celeste.Dialog.orig_Clean orig, string text, Language language)
+    public static void OnUnpause(Level level)
     {
-        if (lagPaused)
-        {
-            if (text == "menu_pause_title")
-            {
-                return orig("LAGPAUSER_PAUSED", language);
-            }
-        }
-
-        return orig(text, language);
+        timeSincePause = 0;
+        level.CanRetry = true;
     }
 
     public static PlayerDeadBody OnPlayerDie(Func<Player, Vector2, bool, bool, PlayerDeadBody> orig, Player self, Vector2 direction, bool ifInvincible, bool registerStats)
